@@ -1,4 +1,9 @@
+<!doctype html>
+<html lang="ru">
+<head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>Пиньинь на слух</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
@@ -3642,3 +3647,5 @@ document.addEventListener('keydown',e=>{const g=$('#game').classList.contains('o
  if(g&&e.code=='Space'){e.preventDefault();play();return}
  const d=+e.key;if(d>=1&&d<=9&&!G.done){if(g){const rs=$$('#opts .or'),r=rs.length>1&&d>4?rs[1]:rs[0],bs=r&&r.querySelectorAll('.opt'),b=bs&&bs[(d-1)%(rs.length>1?4:9)];b&&b.click()}else{const b=$$('#ebody .eo')[d-1];b&&b.click()}}});
 </script>
+
+</html>
