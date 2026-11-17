@@ -171,7 +171,7 @@ body.nm .hero::after{opacity:1}
 .opt .nt{font-size:11px;font-weight:600;line-height:12px;color:var(--t2);letter-spacing:0;white-space:nowrap}
 .opt.n5{box-shadow:var(--sh),inset 0 0 0 1px var(--sep);background:var(--sf2)}.opt.n5.sel .nt,.opt.n5.ok .nt,.opt.n5.no .nt{color:currentColor}
 .tq.cur{color:var(--ac)}
-.opts{flex:none;display:grid;gap:10px;padding:8px var(--gr) 14px var(--gl)}
+.opts{flex:none;display:grid;align-content:end;gap:10px;padding:8px var(--gr) 14px var(--gl)}
 .osl{display:flex;justify-content:space-between;align-items:center;min-height:20px;font-size:13px;color:var(--t2)}
 .osl b{font-weight:600;color:var(--tx)}
 .sdots{display:flex;gap:5px}.sdots i{width:7px;height:7px;border-radius:50%;background:var(--fill);transition:background-color .25s,transform .3s var(--sp)}.sdots i.f{background:color-mix(in srgb,var(--ac) 45%,transparent)}.sdots i.c{background:var(--ac);transform:scale(1.25)}
@@ -406,6 +406,7 @@ html[data-dir="back"]{--vd:-1}
 .opts .opt svg{width:32px;height:13px}
 .opts .opt.sel{background:var(--acs);box-shadow:inset 0 0 0 2px var(--ac)}
 .opts .opt.ok{background:var(--oks);box-shadow:inset 0 0 0 2px var(--ok)}.opts .opt.no{background:var(--nos);box-shadow:inset 0 0 0 2px var(--no)}
+.opts .n5ph{grid-column:1/-1;height:34px}
 .opts .opt.n5{grid-column:1/-1;justify-self:center;flex-direction:row;gap:6px;min-height:34px;height:34px;padding:0 16px;border-radius:17px;background:transparent;box-shadow:inset 0 0 0 1px var(--sep);font-size:14px}
 .opts .opt.n5 .nt{font-size:13px;line-height:1;color:var(--t2)}
 .opts .opt.n5::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.45}
@@ -3307,6 +3308,10 @@ const jqxu=s=>/^[jqx]$/.test(s.i)&&s.f[0]=='ü';
 const igrp=(s,h)=>s.g&&s.i?IG[h].filter(g=>g.includes(s.i)):[];
 const fgrp=(s,h)=>s.g&&!jqxu(s)?FGS[h].filter(g=>g.includes(s.f)):[];
 const tOK=(w,k)=>{const s=w.s[k],n=w.s[k+1];return s.t>=1&&s.t<=4&&!(s.t==3&&n&&n.t==3)};
+let SYLS=null;const sylSet=()=>SYLS||(SYLS=new Set(W.flatMap(w=>w.s.filter(s=>s.g).map(s=>(s.i||'')+'|'+s.f))));
+function pad4(sl,w){if((sl.p!='i'&&sl.p!='f')||sl.opts.length>=4)return sl.opts;const s=w.s[sl.k],ok=c=>sylSet().has(sl.p=='i'?c+'|'+s.f:(s.i||'')+'|'+c),L=sl.p=='i'?IG:FGS;
+ const cand=[...new Set([1,0].flatMap(h=>L[h].filter(g=>g.includes(sl.ans)).flat()).concat(shuf([...new Set(L[1].flat().concat(L[0].flat()))])))].filter(c=>!sl.opts.includes(c)&&ok(c));
+ const out=sl.opts.slice();for(const c of cand){if(out.length>=4)break;out.push(c)}return out.length>sl.opts.length?shuf(out):sl.opts}
 function optsFrom(grps,ans,force){const g=pick(grps);let d=shuf(g.filter(x=>x!=ans));if(force&&force!=ans){d=[force,...d.filter(x=>x!=force)]}return shuf(d.slice(0,3).concat(ans))}
 /* ---------- icons ---------- */
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
@@ -3742,7 +3747,7 @@ if(!q&&(m=='a2m'||m=='a2h'))return exStart(m);
  G={kind:'L',nm,q,i:0,ans:0,sk:0,ms:0,ok:0,bad:[],lives:nm?lv:0,mx:nm?lv:0,t0:Date.now(),mode:m};actx();next(true);go('game')}
 function cur(){return G.cur}
 function next(first){if(G.nm&&G.lives<=0||G.i>=G.q.length)return end();
- const src=G.q[G.i];G.cur={...src,slots:src.slots.map(s=>({...s,sel:null,ok:null})),c:0,res:0};G.plays=0;G.done=0;G.pend=0;hideSheet();play();
+ const src=G.q[G.i];G.cur={...src,multi:src.multi||S.m!='init',slots:src.slots.map(s=>({...s,opts:pad4(s,src.w),sel:null,ok:null})),c:0,res:0};G.plays=0;G.done=0;G.pend=0;hideSheet();play();
  if(first)return render(1);const m=$('#gmain');m.classList.remove('qi');m.classList.add('qo');$('#opts').style.opacity=0;
  setTimeout(()=>{m.classList.remove('qo');$('#opts').style.opacity='';render()},150)}
 function render(first){const q=G.cur,w=$('#word'),m=$('#gmain');const wv=$('#pwrap .wv');wv.dataset.id='';wv.innerHTML='<i style="--h:.1"></i>'.repeat(40);prepWord(q.w).then(r=>{if(r&&G.cur===q)vizBars($('#pwrap'),r)});const nx=G.q[G.i+1];if(nx)prepWord(nx.w);$('#lab').textContent=LAB[q.m]||'';w.dataset.l=q.w.s.length;drawWord();drawOpts(true);topUI();pls();timer(first);$('#slow').classList.toggle('on',!!S.slow);m.classList.remove('qi');void m.offsetWidth;m.classList.add('qi')}
@@ -3771,9 +3776,15 @@ function optBtn(sl,v,k,q){const s=q.w.s[sl.k];let inner;
 const nCols=sl=>sl.opts.filter(v=>!(sl.p=='t'&&v==5)).length;
 function drawOpts(anim){const q=G.cur,o=$('#opts');let h='';
  if(!q.multi){h=q.slots.map((sl,i)=>`<div class="or" data-s="${i}" style="--n:${nCols(sl)}">${sl.opts.map((v,k)=>optBtn(sl,v,k+i*4,q)).join('')}</div>`).join('')}
- else{const sl=q.slots[q.c],n=q.w.s.length;h=`<div class="osl"><span><b>${PN[sl.p][0].toUpperCase()+PN[sl.p].slice(1)}</b>${n>1?' '+ORD[sl.k]+' слога':''}</span><span class="sdots">${q.slots.map((x,i)=>`<i class="${i==q.c?'c':x.sel?'f':''}"></i>`).join('')}</span></div><div class="or" data-s="${q.c}" style="--n:${nCols(sl)}">${sl.opts.map((v,k)=>optBtn(sl,v,k,q)).join('')}</div>`;
+ else{const sl=q.slots[q.c],n=q.w.s.length;h=`<div class="osl"><span><b>${PN[sl.p][0].toUpperCase()+PN[sl.p].slice(1)}</b>${n>1?' '+ORD[sl.k]+' слога':''}</span><span class="sdots">${q.slots.map((x,i)=>`<i class="${i==q.c?'c':x.sel?'f':''}"></i>`).join('')}</span></div><div class="or" data-s="${q.c}" style="--n:${nCols(sl)}">${sl.opts.map((v,k)=>optBtn(sl,v,k,q)).join('')}${sl.p=='t'&&sl.opts.includes(5)?'':'<span class="n5ph" aria-hidden="true"></span>'}</div>`;
   const all=q.slots.every(x=>x.sel);h+=`<button class="btn" id="chk" ${all?'':'disabled'}>Проверить</button>`}
- o.innerHTML=h;if(!anim)o.querySelectorAll('.opt').forEach(b=>b.style.animation='none');refreshOpts();const c=$('#chk');if(c)c.onclick=check}
+ o.innerHTML=h;if(!anim)o.querySelectorAll('.opt').forEach(b=>b.style.animation='none');refreshOpts();const c=$('#chk');if(c)c.onclick=check;
+ sizeOpts()}
+function sizeOpts(){const o=$('#opts'),q=G.cur;if(!o||!q||G.kind!='L'||S.m=='init'){if(o)o.style.minHeight='';return}
+ if(!o.offsetParent){if((sizeOpts.n=(sizeOpts.n||0)+1)<90)requestAnimationFrame(sizeOpts);return}sizeOpts.n=0;
+ const key='py4ph'+innerWidth;let cv=+ls(key)||0;
+ if(!cv){const keep=document.createDocumentFragment();while(o.firstChild)keep.appendChild(o.firstChild);o.style.minHeight='';o.innerHTML=`<div class="osl"><span><b>Тон</b> 1-го слога</span><span class="sdots"><i class="c"></i><i></i></span></div><div class="or" style="--n:4">${[1,2,3,4].map(v=>`<button class="opt" style="animation:none"><span class="os">ā</span>${tc(v)}</button>`).join('')}<span class="n5ph"></span></div><button class="btn" id="chk" disabled>Проверить</button>`;cv=o.offsetHeight;o.innerHTML='';o.appendChild(keep);if(cv)ls(key,cv)}
+ o.style.minHeight='';const hh=o.offsetHeight;if(q.multi&&hh>cv){cv=hh;ls(key,hh)}o.style.minHeight=Math.max(hh,cv)+'px'}
 function refreshOpts(){const q=G.cur;$$('#opts .or').forEach(r=>{const sl=q.slots[+r.dataset.s];r.querySelectorAll('.opt').forEach(b=>{const v=b.dataset.v,A=String(sl.ans),ok=v==A||(sl.alt&&sl.alt.map(String).includes(v));
  b.className='opt'+(b.classList.contains('n5')?' n5':'')+(q.res?(v==A?' ok':v==String(sl.sel)?(ok?' ok':' no'):' dm'):(v==String(sl.sel)?' sel':''));b.disabled=!!q.res})})}
 $('#opts').onclick=e=>{const b=e.target.closest('.opt');if(!b||G.done||G.pend)return;const q=G.cur,r=b.closest('.or'),i=+r.dataset.s,sl=q.slots[i];sl.sel=sl.p=='t'?+b.dataset.v:b.dataset.v;tick();hap(8);
@@ -3794,7 +3805,7 @@ function check(){const q=G.cur;if(G.done)return;G.done=1;G.pend=0;G.ans++;stopTi
  const wrongK=new Set(q.slots.filter(s=>!s.ok).map(s=>s.k));
  const py=q.w.s.map((s,k)=>wrongK.has(k)?`<em>${syl(s)}</em>`:syl(s)).join(' ');
  const head=ok?'Верно':q.to?'Время вышло':part?'Почти':'Неверно',cls=ok?'g':part?'m':'b';
- const chip=q.multi?`<span class="chp">${okc} из ${q.slots.length}</span>`:(ok&&G.sk>=3?`<span class="chp">Серия ${G.sk}</span>`:'');
+ const chip=q.slots.length>1?`<span class="chp">${okc} из ${q.slots.length}</span>`:(ok&&G.sk>=3?`<span class="chp">Серия ${G.sk}</span>`:'');
  const why=new Set(q.slots.filter(s=>s.p=='t'&&s.why).map(s=>s.why));const sandhi=why.has('33')?'<div class="xp">Два третьих тона подряд: первый звучит почти как второй, но пишется третьим.</div>':'';
  $('#sin').innerHTML=`<div class="shd"><span class="sic">${ok?I.check:part?I.minus:I.x}</span><b>${head}</b>${chip}<span class="sp"></span><button class="ib tn" id="rps" aria-label="Медленно"><span class="slw">0.7×</span></button><button class="vp mini" id="rp" aria-label="Прослушать снова"><span class="vpi"><span class="pl">${I.play}</span><span class="pa">${I.pause}</span><span class="sp2"></span></span><span class="wv" data-n="16">${'<i style="--h:.12"></i>'.repeat(16)}</span></button></div>
  <div class="sw">${q.w.h?`<span class="hz">${q.w.h}</span>`:''}<span class="py">${py}</span></div><p class="tl">${q.w.r}</p>${!ok&&!q.to?`<p class="yo">Ваш ответ: <s>${selPy(q)}</s></p>`:''}${sandhi}<div class="pitch"><p><b>Мелодика из записи</b><span>${q.w.s.map(s=>s.t>=1&&s.t<=4?s.t+'-й':'без тона').join(' · ')}</span></p><canvas id="pc" aria-label="График высоты голоса"></canvas></div><button class="btn" id="nx">${last?'Результаты':'Далее'}</button>`;
